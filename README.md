@@ -67,6 +67,18 @@ Implementa el sistema de logging estructurado, escritura no bloqueante, rotació
 
 ## 3. Diagrama de arquitectura
 
+```mermaid
+flowchart TD
+
+    A[Usuario / CLI] --> B[app_operator.py]
+
+    B --> C[sanitizer.py]
+    B --> D[core.py]
+
+
+```
+
+
 ---
 
 ## 4. Instalación
