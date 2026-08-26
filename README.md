@@ -75,8 +75,25 @@ flowchart TD
     B --> C[sanitizer.py]
     B --> D[core.py]
 
+    D --> E[AWS]
+    D --> F[Azure]
+    D --> G[GCP]
 
+    E --> H[Telemetría]
+    F --> H
+    G --> H
+
+    D --> I[exceptions.py]
+
+    B --> J[logging_engine.py]
+    I --> J
+    H --> J
+
+    J --> K[Consola]
+    J --> L[triton_services.log]
+    L --> M[Rotación y compresión GZIP]
 ```
+
 
 
 ---
