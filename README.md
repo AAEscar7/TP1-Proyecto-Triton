@@ -1,140 +1,210 @@
-# TP1 - Proyecto Triton
+# Proyecto Tritón 🔱
 
-## Programación para Automatización II
+**Sistema de Telemetría Multicloud y Observabilidad Asíncrona**
 
-**Alumnos:**
- - Alejandro Escariz
- - 
- - 
- -  
-**Proyecto:** TP-1 - Sistema de Telemetría Multicloud y Observabilidad Asíncrona  
-**Nombre del sistema:** Proyecto Tritón  
-**Modalidad:** Grupal  
-**Año:** 2026  
+Aplicación CLI que consulta simultáneamente múltiples proveedores cloud (AWS, Azure, GCP) utilizando programación asíncrona con Python 3.11+, capturando y analizando telemetría en tiempo real.
 
 ---
 
-## 1. Descripción del proyecto
+## 📋 Descripción
 
-Proyecto Tritón es un sistema desarrollado en Python para simular la recolección de telemetría desde distintos proveedores de infraestructura cloud.
+Tritón es un monitor de telemetría que:
 
-El sistema trabaja con tres proveedores: AWS, zure y GCP
-
-La aplicación permite además simular condiciones de falla para verificar el comportamiento del sistema ante problemas de red, timeouts, respuestas HTTP inesperadas y payloads inválidos.
-
+- Consulta proveedores cloud de forma **asíncrona y concurrente**
+- Captura métricas y datos de observabilidad en **tiempo real**
+- Proporciona manejo robusto de errores con **ExceptionGroups**
+- Registra eventos en **JSON estructurado** de forma no bloqueante
+- Simula fallos de red controlados en **modo caos** para pruebas de resiliencia
 
 ---
 
-## 2. Arquitectura
+## 🏗️ Arquitectura
 
+### Componentes Principales
 
-```text
-TP1-Proyecto-Triton/
-│
-├── src/
-│   ├── app_operator.py
-│   │
-│   └── triton_telemetry/
-│       ├── __init__.py
-│       ├── core.py
-│       ├── exceptions.py
-│       ├── logging_engine.py
-│       └── sanitizer.py
-│
-├── requirements.txt
-├── README.md
-├── triton_services.log
+```
+src/
+├── app_operator.py              # CLI y orquestación principal
+└── triton_telemetry/
+    ├── core.py                  # Lógica asíncrona de consultas
+    ├── exceptions.py            # Excepciones personalizadas
+    ├── logging_engine.py        # Pipeline de logging JSON
+    └── sanitizer.py             # Validación de argumentos
 ```
 
-### Responsabilidad de cada módulo
+### Flujo de Datos
 
-**app_operator.py**  
-Es el punto de entrada de la aplicación. Procesa los argumentos ingresados por consola, ejecuta el escaneo, controla las modalidades de salida y gestiona los distintos grupos de excepciones.
-
-**core.py**  
-Contiene la lógica principal para consultar los proveedores y ejecutar las tareas concurrentemente mediante `asyncio`.
-
-**exceptions.py**  
-Define las excepciones personalizadas utilizadas por Proyecto Tritón para clasificar los distintos tipos de fallas.
-
-**sanitizer.py**  
-Valida y sanitiza los parámetros ingresados por el usuario, como el timeout y el identificador del clúster.
-
-**logging_engine.py**  
-Implementa el sistema de logging estructurado, escritura no bloqueante, rotación de archivos y compresión de logs históricos.
+1. **CLI Parser** → Valida argumentos del usuario
+2. **Async Task Group** → Lanza consultas concurrentes a proveedores
+3. **HTTP Client (httpx)** → Obtiene datos de endpoints
+4. **Exception Handling** → Captura y reporta errores específicos
+5. **Structured Logging** → Registra eventos en JSON
 
 ---
 
-## 3. Diagrama de arquitectura
+## 🚀 Características
 
-```mermaid
-flowchart TD
+### Consultas Asíncronas
+- Manejo concurrente de múltiples proveedores cloud
+- Operaciones no bloqueantes con `asyncio.TaskGroup`
+- Timeout configurable por consulta
 
-    A[Usuario / CLI] --> B[app_operator.py]
+### Manejo de Errores Granular
+- **ProviderTimeoutError**: Proveedor no respondió a tiempo
+- **NetworkPeeringError**: Fallo de conectividad de red
+- **CorruptedPayloadError**: Respuesta malformada o código HTTP erróneo
 
-    B --> C[sanitizer.py]
-    B --> D[core.py]
+### Logging Estructurado
+- Formato JSON con timestamps ISO 8601
+- Serialización de excepciones anidadas (ExceptionGroups)
+- Rotación automática con compresión gzip
+- Acceso no bloqueante con `QueueListener`
 
-    D --> E[AWS]
-    D --> F[Azure]
-    D --> G[GCP]
+### Validación de Entrada
+- Cluster ID con patrón stricto: `cluster-[region]-[0-9]+`
+- Timeout entre 0.1 y 10.0 segundos
+- Modos operativos: nominal, debug, emergency
 
-    E --> H[Telemetría]
-    F --> H
-    G --> H
-
-    D --> I[exceptions.py]
-
-    B --> J[logging_engine.py]
-    I --> J
-    H --> J
-
-    J --> K[Consola]
-    J --> L[triton_services.log]
-    L --> M[Rotación y compresión GZIP]
-```
-
-
+### Modo Caos
+- Simula fallos controlados en proveedores
+- Prueba la resiliencia del sistema ante errores
+- Útil para validar manejo de excepciones
 
 ---
 
-## 4. Instalación
+## 📦 Dependencias
 
+- **httpx** ≥ 0.27.0 — Cliente HTTP asíncrono con soporte concurrente
+- **Python** ≥ 3.11 — Para TaskGroup y ExceptionGroup
 
-### Instalar las dependencias
+---
+
+## 🛠️ Instalación
 
 ```bash
+# Clonar repositorio
+git clone https://github.com/AAEscar7/TP1-Proyecto-Triton.git
+cd TP1-Proyecto-Triton
+
+# Crear entorno virtual
+python -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+
+# Instalar dependencias
 pip install -r requirements.txt
 ```
 
 ---
 
-## 5. Ejecución
+## 🎯 Uso
 
-Posicionarse en la raiz del proyecto.
-
-### Ayuda de la interfaz CLI
-
+### Consultar proveedores específicos
 ```bash
-python src/app_operator.py --help
+python -m src.app_operator AWS Azure --cluster-id cluster-us-east-1-1 --timeout 2.5
+```
+
+### Modo caos (simular fallos)
+```bash
+python -m src.app_operator GCP --cluster-id cluster-eu-west-1-2 --chaos
+```
+
+### Especificar modo operativo
+```bash
+python -m src.app_operator AWS Azure GCP \
+    --cluster-id cluster-ap-south-1-3 \
+    --timeout 5.0 \
+    --mode debug
+```
+
+### Ver ayuda
+```bash
+python -m src.app_operator --help
 ```
 
 ---
 
-### Escenario nominal
+## 📊 Ejemplo de Salida
+
+```
+============================================================
+INICIANDO MONITOR DE TELEMETRÍA TRITÓN
+Clúster Target: cluster-us-east-1-1
+Modo de Operación: nominal
+Proveedores Seleccionados: AWS, Azure, GCP
+Timeout Configurado: 2.5 s
+============================================================
+EVALUACIÓN DE TELEMETRÍA COMPLETADA CON ÉXITO
+Métricas [AWS]: {"userId": 1, "id": 1, "title": "...", "body": "..."}
+Métricas [Azure]: {"userId": 1, "id": 2, "title": "...", "body": "..."}
+Métricas [GCP]: {"userId": 1, "id": 3, "title": "...", "body": "..."}
+============================================================
+FINALIZANDO CICLO DE MONITOREO Y APAGANDO PIPELINE NO BLOQUEANTE
+============================================================
+```
+
+---
+
+## 📂 Estructura de Archivos
+
+| Archivo | Propósito |
+|---------|-----------|
+| `src/app_operator.py` | Punto de entrada CLI y orquestación |
+| `src/triton_telemetry/core.py` | Lógica asíncrona de consultas HTTP |
+| `src/triton_telemetry/exceptions.py` | Excepciones personalizadas de Tritón |
+| `src/triton_telemetry/logging_engine.py` | Pipeline de logging estructurado en JSON |
+| `src/triton_telemetry/sanitizer.py` | Validadores de argumentos CLI |
+| `triton_services.log` | Archivo de log generado (rotado y comprimido) |
+
+---
+
+## 🔧 Lógica Clave
+
+### Consulta Asíncrona (`core.py`)
+1. Selecciona endpoint según modo (normal/caos)
+2. Realiza petición HTTP con timeout
+3. Valida código HTTP y formato JSON
+4. Captura excepciones específicas con context
+
+### Orquestación (`app_operator.py`)
+1. Parsea argumentos CLI
+2. Crea tareas concurrentes para cada proveedor
+3. Captura `ExceptionGroup` para manejo granular
+4. Reporta errores detallados con forensics
+
+### Logging (`logging_engine.py`)
+- Formatea registros como JSON estructurado
+- Serializa árboles de excepciones completos
+- Usa `QueueListener` para acceso no bloqueante
+- Rota logs automáticamente con compresión gzip
+
+---
+
+## 🧪 Testing
+
+Prueba con modo caos para simular fallos:
 
 ```bash
-python src/app_operator.py AWS Azure GCP -c cluster-us-east-01 -t 3.0
+python -m src.app_operator AWS Azure GCP --cluster-id cluster-test-1 --chaos
 ```
 
-Este escenario realiza el escaneo concurrente de los tres proveedores con un timeout normal de 3 segundos
+Esto desencadenará:
+- Timeouts simulados (3s delay)
+- Errores HTTP 504
+- Payloads XML malformados
 
-Una ejecución correcta informa:
+---
 
-```text
-ESCANEO COMPLETADO SIN ANOMALÍAS
-```
+## 📝 Notas
 
-y presenta el estado, latencia y Payload ID correspondiente a cada proveedor.
+- Los datos de telemetría se obtienen de `jsonplaceholder.typicode.com` para demostración
+- El modo caos utiliza `httpbin.org` para inyectar fallos controlados
+- Los logs se guardan en formato JSON en `triton_services.log`
+- Se requiere Python 3.11+ para TaskGroup y ExceptionGroup
+
+---
+
+## 👤 Autor
+
+**AAEscar7** — Trabajo práctico académico
 
 ---
