@@ -205,6 +205,17 @@ Esto desencadenará:
 
 ## 👤 Autor
 
-**AAEscar7** — Trabajo práctico académico
+### Grupo 7
+
+```
+Programación Para Automatización II - UPATECO - 2026
+└── Grupo 7
+    ├── Diego Cerrano                 # Integrante 1
+    ├── Alejandro Escariz             # Integrante 1
+    ├── Ignacio Aleman                # Integrante 1
+    ├── Maria Belen Ferreyra          # Integrante 1
+    ├── Enrique Marroquin             # Integrante 1
+    └── Leonel Isasmendi              # Integrante 1
+``` 
 
 ---
